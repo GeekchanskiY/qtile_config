@@ -24,10 +24,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from libqtile import bar, layout, widget
+import os
+import subprocess
+
+from libqtile import bar, layout, widget, hook
 from libqtile.config import Click, Drag, Group, Key, Match, Screen
 from libqtile.lazy import lazy
 from libqtile.utils import guess_terminal
+
+import logging
+
+
+logging.basicConfig(filename='/home/dmitry/.config/qtile/qtile.log', level=logging.NOTSET)
+
+@hook.subscribe.startup_once
+def autostart():
+    subprocess.Popen(["sh", "/home/dmitry/.config/qtile/autostart.sh"])
+
 
 mod = "mod4"
 terminal = 'kitty'
@@ -166,7 +179,7 @@ screens = [
                 widget.Battery(format=" {percent:2.0%} "),
                 widget.QuickExit(countdown_start=3, default_text='[X]', countdown_format='[{}]'),
             ],
-            14,
+            22,
             # border_width=[2, 0, 2, 0],  # Draw top and bottom borders
             # border_color=["ff00ff", "000000", "ff00ff", "000000"]  # Borders are magenta
         ),
@@ -184,7 +197,8 @@ screens = [
             widget.Spacer(),
             widget.Clock(),
             widget.Spacer()
-        ], 14),
+        ], 
+        22),
     ),
 
 ]
@@ -233,3 +247,6 @@ wl_input_rules = None
 # We choose LG3D to maximize irony: it is a 3D non-reparenting WM written in
 # java that happens to be on java's whitelist.
 wmname = "LG3D"
+
+
+
