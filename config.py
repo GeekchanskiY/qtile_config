@@ -27,13 +27,15 @@
 # import os
 import subprocess
 
-from libqtile import bar, layout, hook, qtile
+from libqtile import bar, layout, hook, qtile, widget
 from libqtile.config import Click, Drag, Group, Key, Match, Screen
 from libqtile.lazy import lazy
-from libqtile.utils import guess_terminal
+# from libqtile.utils import guess_terminal
 
-from qtile_extras.widget.decorations import PowerLineDecoration
-from qtile_extras import widget
+from libqtile.utils import send_notification
+
+# from qtile_extras.widget.decorations import PowerLineDecoration
+# from qtile_extras import widget
 
 import logging
 
@@ -44,6 +46,17 @@ logging.basicConfig(filename='/home/dmitry/.config/qtile/qtile.log', level=loggi
 def autostart():
     subprocess.Popen(["sh", "/home/dmitry/.config/qtile/autostart.sh"])
 
+@hook.subscribe.client_managed
+def client_managed(client):
+    with open('/home/dmitry/a.txt', 'w') as f:
+        f.write('YAY')
+
+@hook.subscribe.startup
+def run_every_startup():
+    send_notification("qtile", "Startup")
+
+def notify_me():
+    send_notification("qtile", f"{'asd'} has been managed by qtile")
 
 mod = "mod4"
 terminal = 'kitty'
@@ -51,12 +64,6 @@ keyboard = widget.KeyboardLayout(
     configured_keyboards=['us', 'ru'],
     padding=5
 )
-
-powerline = {
-    "decorations": [
-        PowerLineDecoration()
-    ]
-}
 
 keys = [
     # A list of available commands that can be bound to keys can be found
@@ -179,6 +186,7 @@ screens = [
                 # ),
                 widget.Spacer(),
                 widget.Clock(format="%H:%M"),
+                widget.Notify(),
                 widget.Spacer(),
                 # NB Systray is incompatible with Wayland, consider using StatusNotifier instead
                 # widget.StatusNotifier(),
