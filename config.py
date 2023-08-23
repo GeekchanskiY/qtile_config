@@ -24,13 +24,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
+# import os
 import subprocess
 
-from libqtile import bar, layout, widget, hook
+from libqtile import bar, layout, hook, qtile
 from libqtile.config import Click, Drag, Group, Key, Match, Screen
 from libqtile.lazy import lazy
 from libqtile.utils import guess_terminal
+
+from qtile_extras.widget.decorations import PowerLineDecoration
+from qtile_extras import widget
 
 import logging
 
@@ -44,7 +47,16 @@ def autostart():
 
 mod = "mod4"
 terminal = 'kitty'
-keyboard = widget.KeyboardLayout(configured_keyboards=['us', 'ru'])
+keyboard = widget.KeyboardLayout(
+    configured_keyboards=['us', 'ru'],
+    padding=5
+)
+
+powerline = {
+    "decorations": [
+        PowerLineDecoration()
+    ]
+}
 
 keys = [
     # A list of available commands that can be bound to keys can be found
@@ -84,7 +96,7 @@ keys = [
     Key([mod], "w", lazy.window.kill(), desc="Kill focused window"),
     Key([mod, "control"], "r", lazy.reload_config(), desc="Reload the config"),
     Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
-    Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
+    Key([mod], "r", lazy.spawn('rofi -show run'), desc="Spawn a command using a prompt widget"),
 
     Key([mod,], "space", lazy.widget["keyboardlayout"].next_keyboard(),   desc="Next keyboard layout"),
 ]
@@ -116,7 +128,7 @@ for i in groups:
     )
 
 layouts = [
-    layout.Columns(
+        layout.Columns( # type: ignore
         border_focus="#808080",
         border_width=2,
         fair=True,
@@ -154,11 +166,10 @@ screens = [
                 # widget.CurrentLayout(),
                 widget.GroupBox(
 			    highlight_method='block',
-			    rounded=False,
+			    rounded=True,
 			    block_highlight_text_color='#FFFFFF',
 			    this_current_screen_border='#2a2a2a',	
 		        ),
-                widget.Prompt(),
                 # widget.WindowName(),
                 # widget.Chord(
                 #     chords_colors={
@@ -174,12 +185,25 @@ screens = [
                 # widget.Systray(),
                 # widget.Backlight(),
                 # widget.Wlan(),
+                widget.Bluetooth(),
                 keyboard,
-                widget.Volume(),
-                widget.Battery(format=" {percent:2.0%} "),
-                widget.QuickExit(countdown_start=3, default_text='[X]', countdown_format='[{}]'),
+                widget.Volume(
+                    padding=5
+                ),
+                widget.Battery(
+                    format=" {percent:2.0%} ",
+                    padding=5
+                ),
+                widget.QuickExit(
+                    countdown_start=3,
+                    default_text=' ⏻ ',
+                    countdown_format='[{}]',
+                    padding=5
+                ),
             ],
-            22,
+            30,
+            background='#00000099',
+            margin=[5, 5, 0, 5]
             # border_width=[2, 0, 2, 0],  # Draw top and bottom borders
             # border_color=["ff00ff", "000000", "ff00ff", "000000"]  # Borders are magenta
         ),
@@ -195,10 +219,14 @@ screens = [
 			this_current_screen_border='#2a2a2a',	
 		    ),
             widget.Spacer(),
-            widget.Clock(),
+            widget.Clock(format='%H:%M'),
+            # AnalogueClock(margin=3, padding=3, second_size=1),
             widget.Spacer()
-        ], 
-        22),
+            ], 
+            30,
+            background='#00000099',
+            margin=[5, 5, 0, 5]
+        ),
     ),
 
 ]
@@ -215,10 +243,10 @@ dgroups_app_rules = []  # type: list
 follow_mouse_focus = True
 bring_front_click = False
 cursor_warp = False
-floating_layout = layout.Floating(
+floating_layout = layout.Floating( # type: ignore
     float_rules=[
         # Run the utility of `xprop` to see the wm class and name of an X client.
-        *layout.Floating.default_float_rules,
+        *layout.Floating.default_float_rules, # type: ignore
         Match(wm_class="confirmreset"),  # gitk
         Match(wm_class="makebranch"),  # gitk
         Match(wm_class="maketag"),  # gitk
