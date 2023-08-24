@@ -27,7 +27,7 @@
 # import os
 import subprocess
 
-from libqtile import bar, layout, hook, qtile, widget
+from libqtile import bar, layout, hook, qtile
 from libqtile.config import Click, Drag, Group, Key, Match, Screen
 from libqtile.lazy import lazy
 # from libqtile.utils import guess_terminal
@@ -36,6 +36,13 @@ from libqtile.utils import send_notification
 
 # from qtile_extras.widget.decorations import PowerLineDecoration
 # from qtile_extras import widget
+from qtile_extras.popup.toolkit import (
+    PopupRelativeLayout,
+    PopupImage,
+    PopupText
+)
+
+from qtile_extras import widget
 
 import logging
 
@@ -46,17 +53,56 @@ logging.basicConfig(filename='/home/dmitry/.config/qtile/qtile.log', level=loggi
 def autostart():
     subprocess.Popen(["sh", "/home/dmitry/.config/qtile/autostart.sh"])
 
-@hook.subscribe.client_managed
-def client_managed(client):
-    with open('/home/dmitry/a.txt', 'w') as f:
-        f.write('YAY')
-
 @hook.subscribe.startup
 def run_every_startup():
     send_notification("qtile", "Startup")
 
 def notify_me():
     send_notification("qtile", f"{'asd'} has been managed by qtile")
+
+
+def show_power_menu(qtile):
+    controls = [
+        PopupText(
+            text="Lock",
+            pos_x=0.1,
+            pos_y=0.5,
+            width=0.2,
+            height=0.2,
+            h_align="center"
+        ),
+        PopupText(
+            text="Sleep",
+            pos_x=0.4,
+            pos_y=0.5,
+            width=0.2,
+            height=0.2,
+            h_align="center"
+        ),
+        PopupText(
+            text="Shutdown",
+            pos_x=0.7,
+            pos_y=0.5,
+            width=0.2,
+            height=0.2,
+            h_align="center",
+            mouse_callbacks={
+                "Button1": lazy.shutdown()
+            }
+        ),
+    ]
+
+    layout = PopupRelativeLayout(
+        qtile,
+        width=500,
+        height=100,
+        controls=controls,
+        background="00000060",
+        initial_focus=True,
+    )
+
+    layout.show(centered=True)
+
 
 mod = "mod4"
 terminal = 'kitty'
@@ -106,6 +152,8 @@ keys = [
     Key([mod], "r", lazy.spawn('rofi -show run'), desc="Spawn a command using a prompt widget"),
 
     Key([mod,], "space", lazy.widget["keyboardlayout"].next_keyboard(),   desc="Next keyboard layout"),
+
+     Key([mod, "shift"], "q", lazy.function(show_power_menu))
 ]
 
 groups = [Group(i) for i in "123456789"]
