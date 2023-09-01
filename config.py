@@ -44,6 +44,9 @@ from qtile_extras.popup.toolkit import (
 
 from qtile_extras import widget
 
+from modules.docker_widget import DockerWidget
+from modules.VPN_widget import VPNWidget
+
 import logging
 
 
@@ -55,10 +58,30 @@ def autostart():
 
 @hook.subscribe.startup
 def run_every_startup():
-    send_notification("qtile", "Startup")
+    send_notification("qtile", "refresh")
 
 def notify_me():
     send_notification("qtile", f"{'asd'} has been managed by qtile")
+
+
+def get_current_brightness(*args, **kwargs):
+    command = "xrandr --verbose | grep -i brightness"
+    process = subprocess.run(command, shell=True, stdout=subprocess.PIPE, text=True)
+    output = str(process.stdout)
+    brightness = float(output.strip().split(' ')[1])
+    return brightness
+
+
+def increase_brightness(*args, **kwargs):
+    brightness: float = get_current_brightness()
+    subprocess.run(f"xrandr --output eDP-1 --brightness {round(brightness + 0.1, 2)}", shell=True, stdout=subprocess.PIPE, text=True)
+    send_notification('Increased brightness', str(round(brightness + 0.1, 2)))
+
+def decrease_brightness(*args, **kwargs):
+    brightness: float = get_current_brightness()
+    subprocess.run(f"xrandr --output eDP-1 --brightness {round(brightness - 0.1, 2)}", shell=True, stdout=subprocess.PIPE, text=True)
+    send_notification('Decreased brightness', str(round(brightness - 0.1, 2)))
+
 
 
 def show_power_menu(qtile):
@@ -153,7 +176,10 @@ keys = [
 
     Key([mod,], "space", lazy.widget["keyboardlayout"].next_keyboard(),   desc="Next keyboard layout"),
 
-     Key([mod, "shift"], "q", lazy.function(show_power_menu))
+    Key([mod, "shift"], "q", lazy.function(show_power_menu)),
+    Key([mod, 'control'], 'y', lazy.function(increase_brightness)),
+    Key([mod, 'control'], 'u', lazy.function(decrease_brightness)),
+
 ]
 
 groups = [Group(i) for i in "123456789"]
@@ -234,14 +260,17 @@ screens = [
                 # ),
                 widget.Spacer(),
                 widget.Clock(format="%H:%M"),
-                widget.Notify(),
                 widget.Spacer(),
                 # NB Systray is incompatible with Wayland, consider using StatusNotifier instead
                 # widget.StatusNotifier(),
                 # widget.Systray(),
                 # widget.Backlight(),
                 # widget.Wlan(),
-                widget.Bluetooth(),
+                # widget.Bluetooth(),
+                widget.Notify(),
+                DockerWidget(),
+                VPNWidget('Poland'),
+                widget.Net(),
                 keyboard,
                 widget.Volume(
                     padding=5
